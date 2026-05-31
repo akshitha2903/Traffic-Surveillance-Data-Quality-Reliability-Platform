@@ -20,7 +20,7 @@ aiofiles==24.1.0
 
 # --- Phase 3: Vision (kept light, full deps added later) ---
 opencv-python-headless==4.10.0.84
-numpy==2.1.2
+numpy==1.26.4
 
 # --- Phase 4: LLM + Agents (installed but not used until Phase 4) ---
 anthropic==0.39.0
