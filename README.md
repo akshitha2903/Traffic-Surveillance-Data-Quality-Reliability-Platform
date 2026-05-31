@@ -62,13 +62,23 @@ Background workers ──► simulated cameras / public traffic datasets
 ### First-time setup
 ```bash
 cp .env.example .env
-docker compose up --build
+docker compose up -d --build
 ```
 
 The backend will be live at:
 - API: http://localhost:8000
 - Interactive docs: http://localhost:8000/docs
 - Health check: http://localhost:8000/health
+
+### Running the camera simulator
+Once the Docker stack is running, start the camera simulator to generate test data:
+```bash
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+pip install -r backend/requirements.txt
+python simulator/camera_sim.py
+```
+This registers 5 simulated cameras (KR Puram, TC Palya, Silk Board, Indiranagar, MVIT Sadahalli) and continuously sends heartbeats + traffic telemetry to the backend API.
 
 ### Services exposed
 | Service | Port |
@@ -83,7 +93,7 @@ The backend will be live at:
 ## Build phases
 
 - [x] **Phase 0** — Project setup, Docker Compose stack, FastAPI skeleton
-- [ ] **Phase 1** — Camera simulator + database models + heartbeat ingestion
+- [x] **Phase 1** — Camera simulator + database models + heartbeat ingestion
 - [ ] **Phase 2** — Camera health monitoring worker + dashboard v1
 - [ ] **Phase 3** — Statistical validation engine + Qdrant pattern matching
 - [ ] **Phase 4** — LangGraph agents (health, anomaly, comparison) + chat UI
@@ -94,12 +104,20 @@ The backend will be live at:
 ## Project layout
 
 ```
-backend/        FastAPI app (API, models, routes)
-workers/        Background services (health checker, validators, detectors)
-agents/         LangGraph agents + their tools
-simulator/      Synthetic camera feed generator
-frontend/      Next.js dashboard
-evals/          Ragas evaluation suite
-infra/          Terraform / k8s configs for deployment
-scripts/        DB init scripts and one-offs
+backend/
+  app/
+    core/           Config + database engine (database.py, config.py)
+    models/         SQLAlchemy table definitions (Camera, Heartbeat, TrafficData, StatusLog)
+    routes/         API endpoints (cameras, heartbeats, traffic, health)
+    schemas/        Pydantic request/response validation schemas
+    main.py         FastAPI app entry point with DB init + route registration
+  Dockerfile        Container build instructions for the backend
+  requirements.txt  Python dependencies
+workers/            Background services (health checker, validators, detectors)
+agents/             LangGraph agents + their tools
+simulator/          Camera simulator (5 Bengaluru junctions, heartbeats + traffic)
+frontend/           Next.js dashboard
+evals/              Ragas evaluation suite
+infra/              Terraform / k8s configs for deployment
+scripts/            DB init scripts (TimescaleDB extension setup)
 ```
